@@ -15,6 +15,7 @@
 		BC7F13201C6142D7000EB0E1 /* Index */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Index; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC7F13231C6142D7000EB0E1 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		BC7F13261C6142D7000EB0E1 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		BC7F13391C6143E2000EB0E1 /* Pin_Definitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pin_Definitions.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -37,6 +38,7 @@
 		BC7F13221C6142D7000EB0E1 /* DMX-FAN */ = {
 			isa = PBXGroup;
 			children = (
+				BC7F13391C6143E2000EB0E1 /* Pin_Definitions.h */,
 				BC7F13231C6142D7000EB0E1 /* main.c */,
 				BC7F13251C6142D7000EB0E1 /* Makefiles */,
 			);
