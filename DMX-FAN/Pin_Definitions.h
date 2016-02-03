@@ -15,7 +15,7 @@
 #define RX_STATUS_PORT 	PORTD
 #define RX_STATUS_DDR	DDRD
 #define RX_STATUS_NUM  	PIND3
-#define RX_STATUS_PWM   OC2B
+#define RX_STATUS_PWM   OCR2B
 
 // MARK: Motor Driving
 #define EN_1_2_PORT 	PORTD
@@ -29,7 +29,7 @@
 #define IN_1_PORT       PORTB
 #define IN_1_DDR        DDRB
 #define IN_1_NUM        PINB1 //OC1A
-#define IN_1_PWM        OC1A
+#define IN_1_PWM        OCR1A
 
 #define IN_2_PORT       PORTD
 #define IN_2_DDR        DDRD
@@ -38,7 +38,7 @@
 #define IN_3_PORT       PORTB
 #define IN_3_DDR        DDRB
 #define IN_3_NUM        PINB2 //OC1B
-#define IN_3_PWM        OC1B
+#define IN_3_PWM        OCR1B
 
 #define IN_4_PORT       PORTB
 #define IN_4_DDR        DDRB

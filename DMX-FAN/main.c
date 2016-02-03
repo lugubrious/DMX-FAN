@@ -12,11 +12,21 @@
 
 #include "Pin_Definitions.h"
 
+#define RX_LED_TIMEOUT      50
+
+
+enum {IDLE, BREAK, STARTB, STARTADR}; 		//DMX states
+
 // MARK: Global Variables
-volatile uint32_t millis, lastRX;       //Clock values
+volatile uint32_t millis, last_rx_time;     //Clock values
+
+volatile uint8_t  dmx_rx_field[3]; 			//array of DMX values (raw)
+volatile uint16_t dmx_address;    			//start address
+volatile uint8_t  dmx_state;				//DMX state
 
 // MARK: Function Declarations
 static void main_loop (void);
+static int get_DMX_addr (void);
 
 // MARK: Function Definitions
 
@@ -86,6 +96,8 @@ int main(void) {
     
     sei();                  // Enable interupts
     
+    dmx_address = get_DMX_addr();
+    
     for (;;) {              // Run main loop for evermore
         main_loop();
 	}
@@ -93,13 +105,75 @@ int main(void) {
 }
 
 void main_loop (void) {
+    // Update motor speeds
+    IN_1_PWM = dmx_rx_field[0];
+    IN_3_PWM = dmx_rx_field[1];
     
+    // Disable motor drivers if speed is zero
+    if (dmx_rx_field[0] = 0) {
+        EN_1_2_PORT &= !(1<<EN_1_2_NUM);
+    } else {
+        EN_1_2_PORT |= (1<<EN_1_2_NUM);
+    }
+    
+    if (dmx_rx_field[1] = 0) {
+        EN_3_4_PORT &= !(1<<EN_3_4_NUM);
+    } else {
+        EN_3_4_PORT |= (1<<EN_3_4_NUM);
+    }
+    
+    // Set motor directions
+    
+    // Set signal LED
+}
+
+int get_DMX_addr () {
+    int out = 1;
+    if ((DIP_0_PIN & (1<<DIP_0_NUM)) == 0) {out += 1;}
+    if ((DIP_1_PIN & (1<<DIP_1_NUM)) == 0) {out += 2;}
+    if ((DIP_2_PIN & (1<<DIP_2_NUM)) == 0) {out += 4;}
+    if ((DIP_3_PIN & (1<<DIP_3_NUM)) == 0) {out += 8;}
+    if ((DIP_4_PIN & (1<<DIP_4_NUM)) == 0) {out += 16;}
+    if ((DIP_5_PIN & (1<<DIP_5_NUM)) == 0) {out += 32;}
+    if ((DIP_6_PIN & (1<<DIP_6_NUM)) == 0) {out += 64;}
+    if ((DIP_7_PIN & (1<<DIP_7_NUM)) == 0) {out += 128;}
+    if ((DIP_8_PIN & (1<<DIP_8_NUM)) == 0) {out += 256;}
+    return out;
 }
 
 
 // MARK: Interupt Service Routines
 ISR (TIMER0_COMPA_vect) { 					//timer0 overflow interrupt (called every millisecond)
     millis++; 								//Increment clock every millisecond
+}
+
+ISR(USART_RX_vect) {						//USART byte recieved
+    static  uint16_t dmx_count;
+    uint8_t  usart_state     = UCSR0A;		//get state before data!
+    uint8_t  dmx_byte        = UDR0;		//get data
+    uint8_t  dmx_state_cache = dmx_state;	//just load once from SRAM to increase speed of ISR
+    
+    if (usart_state & (1<<FE0)) {           //check for break
+        dmx_count = dmx_address;			//reset channel counter (count channels before start address)
+        dmx_state = BREAK;
+    } else if (dmx_state == BREAK) {
+        if (dmx_byte == 0) {
+            dmx_state= STARTB;				//normal start code detected
+            last_rx_time = millis;          //Update last RX time
+        }
+        else dmx_state_cache= IDLE;			//wait for next break
+    } else if (dmx_state_cache == STARTB) {
+        if (--dmx_count == 0) {				//start address reached?
+            dmx_count= 1;					//set up counter for required channels
+            dmx_rx_field[0]= dmx_byte;		//get 1st DMX channel of device
+            dmx_state= STARTADR;
+        }
+    } else if (dmx_state_cache == STARTADR) {
+        dmx_rx_field[dmx_count++]= dmx_byte;//get channel
+        if (dmx_count >= sizeof(dmx_rx_field)) {//all ch received?
+            dmx_state= IDLE; 				//wait for next break
+        }
+    }
 }
 
 /*
